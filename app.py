@@ -9,14 +9,17 @@ st.set_page_config(page_title="Tokenomics Planner", layout="wide")
 # Initialize session state
 if 'distribution' not in st.session_state:
     st.session_state.distribution = {
-        'publicSale': {'percentage': 20, 'tge': 10, 'cliff': 0, 'duration': 12},
-        'privateRounds': {'percentage': 15, 'tge': 5, 'cliff': 6, 'duration': 24},
-        'teamAndAdvisors': {'percentage': 15, 'tge': 0, 'cliff': 12, 'duration': 36},
-        'development': {'percentage': 20, 'tge': 0, 'cliff': 6, 'duration': 48},
-        'ecosystem': {'percentage': 15, 'tge': 5, 'cliff': 3, 'duration': 36},
-        'treasury': {'percentage': 10, 'tge': 0, 'cliff': 12, 'duration': 48},
-        'liquidityPool': {'percentage': 5, 'tge': 100, 'cliff': 0, 'duration': 0}
+        'publicSale': {'percentage': 20.0, 'tge': 10.0, 'cliff': 0, 'duration': 12},
+        'privateRounds': {'percentage': 15.0, 'tge': 5.0, 'cliff': 6, 'duration': 24},
+        'teamAndAdvisors': {'percentage': 15.0, 'tge': 0.0, 'cliff': 12, 'duration': 36},
+        'development': {'percentage': 20.0, 'tge': 0.0, 'cliff': 6, 'duration': 48},
+        'ecosystem': {'percentage': 15.0, 'tge': 5.0, 'cliff': 3, 'duration': 36},
+        'treasury': {'percentage': 10.0, 'tge': 0.0, 'cliff': 12, 'duration': 48},
+        'liquidityPool': {'percentage': 5.0, 'tge': 100.0, 'cliff': 0, 'duration': 0}
     }
+
+if 'remaining_percentage' not in st.session_state:
+    st.session_state.remaining_percentage = 100.0
 
 # Title
 st.title("🪙 Advanced Tokenomics Planner")
@@ -35,54 +38,56 @@ with col1:
     # Distribution settings
     st.subheader("Token Distribution")
     
-    total_percentage = 0
-    tge_circulating = 0
-    remaining_percentage = 100
+    total_percentage = 0.0
+    tge_circulating = 0.0
+    st.session_state.remaining_percentage = 100.0
 
     for category, data in st.session_state.distribution.items():
         with st.expander(f"{category.replace('_', ' ').title()}"):
             # Calculate max allowed percentage for this category
-            max_allowed = remaining_percentage + data['percentage']
+            current_percentage = float(data['percentage'])
+            other_percentages = sum(v['percentage'] for k, v in st.session_state.distribution.items() if k != category)
+            max_allowed = float(100.0 - other_percentages)
             
             percentage = st.slider(
                 "Percentage",
-                0.0, max_allowed, float(data['percentage']),
+                min_value=0.0,
+                max_value=float(max_allowed),
+                value=current_percentage,
+                step=0.1,
                 key=f"{category}_percentage"
             )
-            
-            # Update remaining percentage before saving new value
-            remaining_percentage = 100 - (total_percentage - data['percentage'] + percentage)
             
             # Update session state
             st.session_state.distribution[category]['percentage'] = percentage
             
             # Calculate tokens
-            tokens = (percentage / 100) * total_supply
+            tokens = (percentage / 100.0) * total_supply
             st.write(f"Tokens: {tokens:,.0f}")
             
             # TGE and vesting settings
             cols = st.columns(3)
             with cols[0]:
-                tge = st.number_input("TGE %", 0, 100, data['tge'], key=f"{category}_tge")
+                tge = st.number_input("TGE %", 0.0, 100.0, float(data['tge']), key=f"{category}_tge")
                 st.session_state.distribution[category]['tge'] = tge
             with cols[1]:
-                cliff = st.number_input("Cliff (months)", 0, 48, data['cliff'], key=f"{category}_cliff")
+                cliff = st.number_input("Cliff (months)", 0, 48, int(data['cliff']), key=f"{category}_cliff")
                 st.session_state.distribution[category]['cliff'] = cliff
             with cols[2]:
-                duration = st.number_input("Duration (months)", 0, 48, data['duration'], key=f"{category}_duration")
+                duration = st.number_input("Duration (months)", 0, 48, int(data['duration']), key=f"{category}_duration")
                 st.session_state.distribution[category]['duration'] = duration
             
             total_percentage += percentage
-            tge_circulating += (tokens * tge / 100)
+            tge_circulating += (tokens * tge / 100.0)
 
     # Progress bar for total allocation
     st.subheader("Total Allocation")
-    progress_color = "red" if total_percentage > 100 else "green"
-    st.progress(min(total_percentage / 100, 1.0), text=f"{total_percentage:.1f}%")
-    if total_percentage > 100:
+    progress_color = "red" if total_percentage > 100.0 else "green"
+    st.progress(min(total_percentage / 100.0, 1.0), text=f"{total_percentage:.1f}%")
+    if total_percentage > 100.0:
         st.error("Total allocation exceeds 100%")
-    elif total_percentage < 100:
-        st.warning(f"Remaining allocation: {(100 - total_percentage):.1f}%")
+    elif total_percentage < 100.0:
+        st.warning(f"Remaining allocation: {(100.0 - total_percentage):.1f}%")
 
 with col2:
     # Key metrics
@@ -100,7 +105,7 @@ with col2:
 
     # Distribution Pie Chart
     distribution_data = pd.DataFrame([
-        {"Category": k, "Percentage": v['percentage']}
+        {"Category": k.replace('_', ' ').title(), "Percentage": v['percentage']}
         for k, v in st.session_state.distribution.items()
     ])
     
@@ -117,8 +122,8 @@ months = list(range(49))  # 0 to 48 months
 circulating_supply = np.zeros(len(months))
 
 for category, data in st.session_state.distribution.items():
-    tokens = (data['percentage'] / 100) * total_supply
-    tge_amount = tokens * (data['tge'] / 100)
+    tokens = (data['percentage'] / 100.0) * total_supply
+    tge_amount = tokens * (data['tge'] / 100.0)
     remaining_amount = tokens - tge_amount
     monthly_unlock = remaining_amount / data['duration'] if data['duration'] > 0 else 0
     
@@ -137,7 +142,7 @@ circulating_percentages = (cumulative_supply / total_supply) * 100
 # Create unlock schedule chart
 fig_unlock = go.Figure()
 fig_unlock.add_trace(go.Scatter(
-    x=list(range(len(months))),  # Convert range to list
+    x=months,
     y=circulating_percentages,
     mode='lines',
     name='Circulating Supply %'
@@ -147,7 +152,8 @@ fig_unlock.update_layout(
     title='Token Unlock Schedule',
     xaxis_title='Months after TGE',
     yaxis_title='Circulating Supply %',
-    hovermode='x'
+    hovermode='x',
+    yaxis=dict(range=[0, 100])
 )
 
 st.plotly_chart(fig_unlock, use_container_width=True)
