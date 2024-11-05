@@ -37,14 +37,21 @@ with col1:
     
     total_percentage = 0
     tge_circulating = 0
+    remaining_percentage = 100
 
     for category, data in st.session_state.distribution.items():
         with st.expander(f"{category.replace('_', ' ').title()}"):
+            # Calculate max allowed percentage for this category
+            max_allowed = remaining_percentage + data['percentage']
+            
             percentage = st.slider(
                 "Percentage",
-                0.0, 100.0, float(data['percentage']),
+                0.0, max_allowed, float(data['percentage']),
                 key=f"{category}_percentage"
             )
+            
+            # Update remaining percentage before saving new value
+            remaining_percentage = 100 - (total_percentage - data['percentage'] + percentage)
             
             # Update session state
             st.session_state.distribution[category]['percentage'] = percentage
@@ -74,6 +81,8 @@ with col1:
     st.progress(min(total_percentage / 100, 1.0), text=f"{total_percentage:.1f}%")
     if total_percentage > 100:
         st.error("Total allocation exceeds 100%")
+    elif total_percentage < 100:
+        st.warning(f"Remaining allocation: {(100 - total_percentage):.1f}%")
 
 with col2:
     # Key metrics
@@ -104,7 +113,7 @@ with col2:
     st.plotly_chart(fig_pie, use_container_width=True)
 
 # Unlock schedule calculation and visualization
-months = range(49)  # 0 to 48 months
+months = list(range(49))  # 0 to 48 months
 circulating_supply = np.zeros(len(months))
 
 for category, data in st.session_state.distribution.items():
@@ -128,7 +137,7 @@ circulating_percentages = (cumulative_supply / total_supply) * 100
 # Create unlock schedule chart
 fig_unlock = go.Figure()
 fig_unlock.add_trace(go.Scatter(
-    x=months,
+    x=list(range(len(months))),  # Convert range to list
     y=circulating_percentages,
     mode='lines',
     name='Circulating Supply %'
