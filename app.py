@@ -99,9 +99,19 @@ with col2:
         st.metric("TGE Circulating %", f"{(tge_circulating / total_supply * 100):.2f}%")
     
     with metrics_cols[1]:
-        st.metric("Fully Diluted Valuation", f"${fdv:,.2f}")
-        if tge_circulating > 0:
-            st.metric("FDV/MCap Ratio", f"{(fdv / (tge_circulating * initial_price)):.2f}x")
+    # Format FDV with automatic scaling for large numbers
+    def format_large_number(num):
+        if num >= 1_000_000_000:
+            return f"${num/1_000_000_000:.2f}B"
+        elif num >= 1_000_000:
+            return f"${num/1_000_000:.2f}M"
+        else:
+            return f"${num:,.2f}"
+    
+    st.metric("Fully Diluted Valuation", format_large_number(fdv))
+    if tge_circulating > 0:
+        st.metric("FDV/MCap Ratio", f"{(fdv / (tge_circulating * initial_price)):.2f}x")
+        
 
     # Distribution Pie Chart
     distribution_data = pd.DataFrame([
