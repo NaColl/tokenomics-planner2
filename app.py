@@ -9,13 +9,13 @@ st.set_page_config(page_title="Tokenomics Planner", layout="wide")
 # Initialize session state
 if 'distribution' not in st.session_state:
     st.session_state.distribution = {
-        'publicSale': {'percentage': 20.0, 'tge': 10.0, 'cliff': 0, 'duration': 12},
-        'privateRounds': {'percentage': 15.0, 'tge': 5.0, 'cliff': 6, 'duration': 24},
-        'teamAndAdvisors': {'percentage': 15.0, 'tge': 0.0, 'cliff': 12, 'duration': 36},
-        'development': {'percentage': 20.0, 'tge': 0.0, 'cliff': 6, 'duration': 48},
-        'ecosystem': {'percentage': 15.0, 'tge': 5.0, 'cliff': 3, 'duration': 36},
-        'treasury': {'percentage': 10.0, 'tge': 0.0, 'cliff': 12, 'duration': 48},
-        'liquidityPool': {'percentage': 5.0, 'tge': 100.0, 'cliff': 0, 'duration': 0}
+        'Public Sale': {'percentage': 20.0, 'tge': 10.0, 'cliff': 0, 'duration': 12},
+        'Private Rounds': {'percentage': 15.0, 'tge': 5.0, 'cliff': 6, 'duration': 24},
+        'Team & Advisors': {'percentage': 15.0, 'tge': 0.0, 'cliff': 12, 'duration': 36},
+        'Development': {'percentage': 20.0, 'tge': 0.0, 'cliff': 6, 'duration': 48},
+        'Ecosystem': {'percentage': 15.0, 'tge': 5.0, 'cliff': 3, 'duration': 36},
+        'Treasury': {'percentage': 10.0, 'tge': 0.0, 'cliff': 12, 'duration': 48},
+        'Liquidity Pool': {'percentage': 5.0, 'tge': 100.0, 'cliff': 0, 'duration': 0}
     }
 
 if 'remaining_percentage' not in st.session_state:
