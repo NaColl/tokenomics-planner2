@@ -9,13 +9,13 @@ st.set_page_config(page_title="Tokenomics Planner", layout="wide")
 # Initialize session state
 if 'distribution' not in st.session_state:
     st.session_state.distribution = {
-        'Public Sale': {'percentage': 20.0, 'tge': 10.0, 'cliff': 0, 'duration': 12},
-        'Private Rounds': {'percentage': 15.0, 'tge': 5.0, 'cliff': 6, 'duration': 24},
-        'Team & Advisors': {'percentage': 15.0, 'tge': 0.0, 'cliff': 12, 'duration': 36},
-        'Development': {'percentage': 20.0, 'tge': 0.0, 'cliff': 6, 'duration': 48},
-        'Ecosystem': {'percentage': 15.0, 'tge': 5.0, 'cliff': 3, 'duration': 36},
-        'Treasury': {'percentage': 10.0, 'tge': 0.0, 'cliff': 12, 'duration': 48},
-        'Liquidity Pool': {'percentage': 5.0, 'tge': 100.0, 'cliff': 0, 'duration': 0}
+        'publicSale': {'percentage': 20.0, 'tge': 10.0, 'cliff': 0, 'duration': 12},
+        'privateRounds': {'percentage': 15.0, 'tge': 5.0, 'cliff': 6, 'duration': 24},
+        'teamAndAdvisors': {'percentage': 15.0, 'tge': 0.0, 'cliff': 12, 'duration': 36},
+        'development': {'percentage': 20.0, 'tge': 0.0, 'cliff': 6, 'duration': 48},
+        'ecosystem': {'percentage': 15.0, 'tge': 5.0, 'cliff': 3, 'duration': 36},
+        'treasury': {'percentage': 10.0, 'tge': 0.0, 'cliff': 12, 'duration': 48},
+        'liquidityPool': {'percentage': 5.0, 'tge': 100.0, 'cliff': 0, 'duration': 0}
     }
 
 if 'remaining_percentage' not in st.session_state:
@@ -94,12 +94,6 @@ with col2:
     st.subheader("Key Metrics")
     metrics_cols = st.columns(2)
     
-    with metrics_cols[0]:
-        st.metric("Initial Market Cap", f"${(tge_circulating * initial_price):,.2f}")
-        st.metric("TGE Circulating %", f"{(tge_circulating / total_supply * 100):.2f}%")
-    
-    with metrics_cols[1]:
-    # Format FDV with automatic scaling for large numbers
     def format_large_number(num):
         if num >= 1_000_000_000:
             return f"${num/1_000_000_000:.2f}B"
@@ -108,10 +102,14 @@ with col2:
         else:
             return f"${num:,.2f}"
     
-    st.metric("Fully Diluted Valuation", format_large_number(fdv))
-    if tge_circulating > 0:
-        st.metric("FDV/MCap Ratio", f"{(fdv / (tge_circulating * initial_price)):.2f}x")
-        
+    with metrics_cols[0]:
+        st.metric("Initial Market Cap", format_large_number(tge_circulating * initial_price))
+        st.metric("TGE Circulating %", f"{(tge_circulating / total_supply * 100):.2f}%")
+    
+    with metrics_cols[1]:
+        st.metric("Fully Diluted Valuation", format_large_number(fdv))
+        if tge_circulating > 0:
+            st.metric("FDV/MCap Ratio", f"{(fdv / (tge_circulating * initial_price)):.2f}x")
 
     # Distribution Pie Chart
     distribution_data = pd.DataFrame([
